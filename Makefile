@@ -1,4 +1,4 @@
-obj-m := corsair-cpro.o
+obj-m := corsair-ccxt.o
 
 
 ifndef KERNELRELEASE

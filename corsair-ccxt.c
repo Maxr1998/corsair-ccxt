@@ -22,7 +22,7 @@
 #include <linux/types.h>
 
 #define USB_VENDOR_ID_CORSAIR			0x1b1c
-#define USB_PRODUCT_ID_CORSAIR_COMMANDERPRO	0x0c10
+#define USB_PRODUCT_ID_CORSAIR_COMMANDER_CORE_XT	0x0c2a
 #define USB_PRODUCT_ID_CORSAIR_1000D		0x1d00
 
 #define OUT_BUFFER_SIZE		63
@@ -571,7 +571,7 @@ static void ccp_debugfs_init(struct ccp_device *ccp)
 	char name[32];
 	int ret;
 
-	scnprintf(name, sizeof(name), "corsaircpro-%s", dev_name(&ccp->hdev->dev));
+	scnprintf(name, sizeof(name), "corsairccxt-%s", dev_name(&ccp->hdev->dev));
 	ccp->debugfs = debugfs_create_dir(name, NULL);
 
 	ret = get_fw_version(ccp);
@@ -634,7 +634,7 @@ static int ccp_probe(struct hid_device *hdev, const struct hid_device_id *id)
 
 	ccp_debugfs_init(ccp);
 
-	ccp->hwmon_dev = hwmon_device_register_with_info(&hdev->dev, "corsaircpro",
+	ccp->hwmon_dev = hwmon_device_register_with_info(&hdev->dev, "corsairccxt",
 							 ccp, &ccp_chip_info, NULL);
 	if (IS_ERR(ccp->hwmon_dev)) {
 		ret = PTR_ERR(ccp->hwmon_dev);
@@ -661,13 +661,13 @@ static void ccp_remove(struct hid_device *hdev)
 }
 
 static const struct hid_device_id ccp_devices[] = {
-	{ HID_USB_DEVICE(USB_VENDOR_ID_CORSAIR, USB_PRODUCT_ID_CORSAIR_COMMANDERPRO) },
+	{ HID_USB_DEVICE(USB_VENDOR_ID_CORSAIR, USB_PRODUCT_ID_CORSAIR_COMMANDER_CORE_XT) },
 	{ HID_USB_DEVICE(USB_VENDOR_ID_CORSAIR, USB_PRODUCT_ID_CORSAIR_1000D) },
 	{ }
 };
 
 static struct hid_driver ccp_driver = {
-	.name = "corsair-cpro",
+	.name = "corsair-ccxt",
 	.id_table = ccp_devices,
 	.probe = ccp_probe,
 	.remove = ccp_remove,
@@ -675,7 +675,7 @@ static struct hid_driver ccp_driver = {
 };
 
 MODULE_DEVICE_TABLE(hid, ccp_devices);
-MODULE_DESCRIPTION("Corsair Commander Pro controller driver");
+MODULE_DESCRIPTION("Corsair Commander Core XT controller driver");
 MODULE_LICENSE("GPL");
 
 static int __init ccp_init(void)
