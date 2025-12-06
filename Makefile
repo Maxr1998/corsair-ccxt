@@ -10,10 +10,17 @@ endif
 KDIR := /usr/lib/modules/$(KRELEASE)/build
 PWD := $(shell pwd)
 
+all: default
 
 default:
-
 	$(MAKE) -C $(KDIR) M=$(PWD) modules
 
 clean:
 	$(MAKE) -C $(KDIR) M=$(PWD) clean
+	rm -f corsair-ccxt.ko.zst
+
+install: default
+	zstd -f corsair-ccxt.ko
+	sudo cp -f corsair-ccxt.ko.zst /lib/modules/6.8.0-88-generic/kernel/drivers/hwmon/
+	sudo rmmod corsair_ccxt || true
+	sudo modprobe corsair_ccxt
