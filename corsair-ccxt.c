@@ -86,7 +86,8 @@ struct ccp_device {
 	/* For reinitializing the completion below */
 	spinlock_t wait_input_report_lock;
 	struct completion wait_input_report;
-	struct mutex mutex; /* whenever buffer is used, lock before send_usb_cmd */
+	struct mutex mutex;
+	/* whenever buffer is used, lock before send_usb_cmd */
 	u8 *cmd_buffer;
 	u8 *buffer;
 	int buffer_recv_size; /* number of received bytes in buffer */
@@ -112,13 +113,15 @@ static int ccp_get_errno(struct ccp_device *ccp)
 	case 0x12: /* requested pwm of not pwm controlled channels */
 		return -ENODATA;
 	default:
-		hid_dbg(ccp->hdev, "unknown device response error: %d", ccp->buffer[0]);
+		hid_dbg(ccp->hdev, "unknown device response error: %d",
+		        ccp->buffer[0]);
 		return -EIO;
 	}
 }
 
 /* send command, check for error in response, response in ccp->buffer */
-static int send_usb_cmd(struct ccp_device *ccp, u8 command, u8 byte1, u8 byte2, u8 byte3)
+static int send_usb_cmd(struct ccp_device *ccp, u8 command, u8 byte1, u8 byte2,
+                        u8 byte3)
 {
 	unsigned long t;
 	int ret;
@@ -143,7 +146,8 @@ static int send_usb_cmd(struct ccp_device *ccp, u8 command, u8 byte1, u8 byte2, 
 	if (ret < 0)
 		return ret;
 
-	t = wait_for_completion_timeout(&ccp->wait_input_report, msecs_to_jiffies(REQ_TIMEOUT));
+	t = wait_for_completion_timeout(&ccp->wait_input_report,
+	                                msecs_to_jiffies(REQ_TIMEOUT));
 	if (!t)
 		return -ETIMEDOUT;
 
@@ -153,7 +157,8 @@ static int send_usb_cmd(struct ccp_device *ccp, u8 command, u8 byte1, u8 byte2, 
 	return ccp_get_errno(ccp);
 }
 
-static int ccp_raw_event(struct hid_device *hdev, struct hid_report *report, u8 *data, int size)
+static int ccp_raw_event(struct hid_device *hdev, struct hid_report *report,
+                         u8 *data, int size)
 {
 	struct ccp_device *ccp = hid_get_drvdata(hdev);
 
@@ -170,7 +175,8 @@ static int ccp_raw_event(struct hid_device *hdev, struct hid_report *report, u8 
 }
 
 /* requests and returns single data values depending on channel */
-static int get_data(struct ccp_device *ccp, int command, int channel, bool two_byte_data)
+static int get_data(struct ccp_device *ccp, int command, int channel,
+                    bool two_byte_data)
 {
 	int ret;
 
@@ -224,7 +230,7 @@ static int set_target(struct ccp_device *ccp, int channel, long val)
 }
 
 static int ccp_read_string(struct device *dev, enum hwmon_sensor_types type,
-			   u32 attr, int channel, const char **str)
+                           u32 attr, int channel, const char **str)
 {
 	struct ccp_device *ccp = dev_get_drvdata(dev);
 
@@ -246,7 +252,7 @@ static int ccp_read_string(struct device *dev, enum hwmon_sensor_types type,
 }
 
 static int ccp_read(struct device *dev, enum hwmon_sensor_types type,
-		    u32 attr, int channel, long *val)
+                    u32 attr, int channel, long *val)
 {
 	struct ccp_device *ccp = dev_get_drvdata(dev);
 	int ret;
@@ -315,7 +321,7 @@ static int ccp_read(struct device *dev, enum hwmon_sensor_types type,
 };
 
 static int ccp_write(struct device *dev, enum hwmon_sensor_types type,
-		     u32 attr, int channel, long val)
+                     u32 attr, int channel, long val)
 {
 	struct ccp_device *ccp = dev_get_drvdata(dev);
 
@@ -344,7 +350,7 @@ static int ccp_write(struct device *dev, enum hwmon_sensor_types type,
 };
 
 static umode_t ccp_is_visible(const void *data, enum hwmon_sensor_types type,
-			      u32 attr, int channel)
+                              u32 attr, int channel)
 {
 	const struct ccp_device *ccp = data;
 
@@ -410,36 +416,36 @@ static const struct hwmon_ops ccp_hwmon_ops = {
 	.write = ccp_write,
 };
 
-static const struct hwmon_channel_info * const ccp_info[] = {
+static const struct hwmon_channel_info *const ccp_info[] = {
 	HWMON_CHANNEL_INFO(chip,
-			   HWMON_C_REGISTER_TZ),
+	                   HWMON_C_REGISTER_TZ),
 	HWMON_CHANNEL_INFO(temp,
-			   HWMON_T_INPUT,
-			   HWMON_T_INPUT,
-			   HWMON_T_INPUT,
-			   HWMON_T_INPUT
-			   ),
+	                   HWMON_T_INPUT,
+	                   HWMON_T_INPUT,
+	                   HWMON_T_INPUT,
+	                   HWMON_T_INPUT
+		),
 	HWMON_CHANNEL_INFO(fan,
-			   HWMON_F_INPUT | HWMON_F_LABEL | HWMON_F_TARGET,
-			   HWMON_F_INPUT | HWMON_F_LABEL | HWMON_F_TARGET,
-			   HWMON_F_INPUT | HWMON_F_LABEL | HWMON_F_TARGET,
-			   HWMON_F_INPUT | HWMON_F_LABEL | HWMON_F_TARGET,
-			   HWMON_F_INPUT | HWMON_F_LABEL | HWMON_F_TARGET,
-			   HWMON_F_INPUT | HWMON_F_LABEL | HWMON_F_TARGET
-			   ),
+	                   HWMON_F_INPUT | HWMON_F_LABEL | HWMON_F_TARGET,
+	                   HWMON_F_INPUT | HWMON_F_LABEL | HWMON_F_TARGET,
+	                   HWMON_F_INPUT | HWMON_F_LABEL | HWMON_F_TARGET,
+	                   HWMON_F_INPUT | HWMON_F_LABEL | HWMON_F_TARGET,
+	                   HWMON_F_INPUT | HWMON_F_LABEL | HWMON_F_TARGET,
+	                   HWMON_F_INPUT | HWMON_F_LABEL | HWMON_F_TARGET
+		),
 	HWMON_CHANNEL_INFO(pwm,
-			   HWMON_PWM_INPUT,
-			   HWMON_PWM_INPUT,
-			   HWMON_PWM_INPUT,
-			   HWMON_PWM_INPUT,
-			   HWMON_PWM_INPUT,
-			   HWMON_PWM_INPUT
-			   ),
+	                   HWMON_PWM_INPUT,
+	                   HWMON_PWM_INPUT,
+	                   HWMON_PWM_INPUT,
+	                   HWMON_PWM_INPUT,
+	                   HWMON_PWM_INPUT,
+	                   HWMON_PWM_INPUT
+		),
 	HWMON_CHANNEL_INFO(in,
-			   HWMON_I_INPUT,
-			   HWMON_I_INPUT,
-			   HWMON_I_INPUT
-			   ),
+	                   HWMON_I_INPUT,
+	                   HWMON_I_INPUT,
+	                   HWMON_I_INPUT
+		),
 	NULL
 };
 
@@ -470,15 +476,15 @@ static int get_fan_cnct(struct ccp_device *ccp)
 		switch (mode) {
 		case 1:
 			scnprintf(ccp->fan_label[channel], LABEL_LENGTH,
-				  "fan%d 3pin", channel + 1);
+			          "fan%d 3pin", channel + 1);
 			break;
 		case 2:
 			scnprintf(ccp->fan_label[channel], LABEL_LENGTH,
-				  "fan%d 4pin", channel + 1);
+			          "fan%d 4pin", channel + 1);
 			break;
 		default:
 			scnprintf(ccp->fan_label[channel], LABEL_LENGTH,
-				  "fan%d other", channel + 1);
+			          "fan%d other", channel + 1);
 			break;
 		}
 	}
@@ -546,12 +552,13 @@ static int firmware_show(struct seq_file *seqf, void *unused)
 	struct ccp_device *ccp = seqf->private;
 
 	seq_printf(seqf, "%d.%d.%d\n",
-		   ccp->firmware_ver[0],
-		   ccp->firmware_ver[1],
-		   ccp->firmware_ver[2]);
+	           ccp->firmware_ver[0],
+	           ccp->firmware_ver[1],
+	           ccp->firmware_ver[2]);
 
 	return 0;
 }
+
 DEFINE_SHOW_ATTRIBUTE(firmware);
 
 static int bootloader_show(struct seq_file *seqf, void *unused)
@@ -559,11 +566,12 @@ static int bootloader_show(struct seq_file *seqf, void *unused)
 	struct ccp_device *ccp = seqf->private;
 
 	seq_printf(seqf, "%d.%d\n",
-		   ccp->bootloader_ver[0],
-		   ccp->bootloader_ver[1]);
+	           ccp->bootloader_ver[0],
+	           ccp->bootloader_ver[1]);
 
 	return 0;
 }
+
 DEFINE_SHOW_ATTRIBUTE(bootloader);
 
 static void ccp_debugfs_init(struct ccp_device *ccp)
@@ -571,18 +579,19 @@ static void ccp_debugfs_init(struct ccp_device *ccp)
 	char name[32];
 	int ret;
 
-	scnprintf(name, sizeof(name), "corsairccxt-%s", dev_name(&ccp->hdev->dev));
+	scnprintf(name, sizeof(name), "corsairccxt-%s",
+	          dev_name(&ccp->hdev->dev));
 	ccp->debugfs = debugfs_create_dir(name, NULL);
 
 	ret = get_fw_version(ccp);
 	if (!ret)
 		debugfs_create_file("firmware_version", 0444,
-				    ccp->debugfs, ccp, &firmware_fops);
+	                    ccp->debugfs, ccp, &firmware_fops);
 
 	ret = get_bl_version(ccp);
 	if (!ret)
 		debugfs_create_file("bootloader_version", 0444,
-				    ccp->debugfs, ccp, &bootloader_fops);
+	                    ccp->debugfs, ccp, &bootloader_fops);
 }
 
 static int ccp_probe(struct hid_device *hdev, const struct hid_device_id *id)
@@ -634,8 +643,9 @@ static int ccp_probe(struct hid_device *hdev, const struct hid_device_id *id)
 
 	ccp_debugfs_init(ccp);
 
-	ccp->hwmon_dev = hwmon_device_register_with_info(&hdev->dev, "corsairccxt",
-							 ccp, &ccp_chip_info, NULL);
+	ccp->hwmon_dev = hwmon_device_register_with_info(
+		&hdev->dev, "corsairccxt",
+		ccp, &ccp_chip_info, NULL);
 	if (IS_ERR(ccp->hwmon_dev)) {
 		ret = PTR_ERR(ccp->hwmon_dev);
 		goto out_hw_close;
@@ -661,9 +671,10 @@ static void ccp_remove(struct hid_device *hdev)
 }
 
 static const struct hid_device_id ccp_devices[] = {
-	{ HID_USB_DEVICE(USB_VENDOR_ID_CORSAIR, USB_PRODUCT_ID_CORSAIR_COMMANDER_CORE_XT) },
+	{ HID_USB_DEVICE(USB_VENDOR_ID_CORSAIR,
+	                 USB_PRODUCT_ID_CORSAIR_COMMANDER_CORE_XT) },
 	{ HID_USB_DEVICE(USB_VENDOR_ID_CORSAIR, USB_PRODUCT_ID_CORSAIR_1000D) },
-	{ }
+	{}
 };
 
 static struct hid_driver ccp_driver = {
