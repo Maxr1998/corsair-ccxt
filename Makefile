@@ -12,12 +12,15 @@ PWD := $(shell pwd)
 
 all: default
 
+debug-tool: debug-tool.c
+	gcc -o $@ $< -lhidapi-hidraw
+
 default:
 	$(MAKE) -C $(KDIR) M=$(PWD) modules
 
 clean:
 	$(MAKE) -C $(KDIR) M=$(PWD) clean
-	rm -f corsair-ccxt.ko.zst
+	rm -f corsair-ccxt.ko.zst debug-tool
 
 install: default
 	zstd -f corsair-ccxt.ko
