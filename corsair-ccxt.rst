@@ -1,22 +1,21 @@
 .. SPDX-License-Identifier: GPL-2.0-or-later
 
-Kernel driver corsair-cpro
+Kernel driver corsair-ccxt
 ==========================
 
 Supported devices:
 
-  * Corsair Commander Pro
-  * Corsair Commander Pro (1000D)
+  * Corsair Commander Core XT
 
-Author: Marius Zachmann
+Author: Max Rumpf, based on work by Marius Zachmann
 
 Description
 -----------
 
-This driver implements the sysfs interface for the Corsair Commander Pro.
+This driver implements the sysfs interface for the Corsair Commander Core XT.
 The Corsair Commander Pro is a USB device with 6 fan connectors,
-4 temperature sensor connectors and 2 Corsair LED connectors.
-It can read the voltage levels on the SATA power connector.
+// 4 temperature sensor connectors and 2 Corsair LED connectors.
+// It can read the voltage levels on the SATA power connector.
 
 Usage Notes
 -----------
@@ -45,5 +44,5 @@ Debugfs entries
 
 ======================= ===================
 firmware_version	Firmware version
-bootloader_version	Bootloader version
+// bootloader_version	Bootloader version
 ======================= ===================
